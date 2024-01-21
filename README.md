@@ -16,4 +16,4 @@ Forzamos la actualización de un recurso en especifico
 
 ```bash
 terraform apply -replace resource_name
-```# first-terraform-code
+```
