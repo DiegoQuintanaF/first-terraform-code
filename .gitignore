@@ -86,7 +86,7 @@ override.tf.json
 terraform.rc
 
 ### VisualStudioCode ###
-.vscode
+.vscode/
 
 # Local History for Visual Studio Code
 .history/
