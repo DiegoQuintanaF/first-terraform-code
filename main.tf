@@ -11,7 +11,7 @@ resource "aws_vpc" "mtc_aws" {
 resource "aws_subnet" "mtc_public_subnet" {
   vpc_id                  = aws_vpc.mtc_aws.id
   cidr_block              = "10.123.1.0/24"
-  availability_zone       = "us-east-1a"
+  availability_zone       = "${var.provider_region}a"
   map_public_ip_on_launch = true
 
   tags = {
@@ -78,11 +78,11 @@ resource "aws_security_group" "mtc_sg" {
 
 resource "aws_key_pair" "mtc_auth" {
   key_name   = "mtckey"
-  public_key = file("~/.ssh/mtckey.pub")
+  public_key = file("${var.ssh_key_path}.pub")
 }
 
 resource "aws_instance" "dev_node" {
-  instance_type          = "t2.micro"
+  instance_type          = var.instance_type
   ami                    = data.aws_ami.server_ami.id
   key_name               = aws_key_pair.mtc_auth.key_name
   vpc_security_group_ids = [aws_security_group.mtc_sg.id]
@@ -98,12 +98,13 @@ resource "aws_instance" "dev_node" {
   }
 
   provisioner "local-exec" {
-    command = templatefile("unix-ssh-config.tpl", {
+    command = templatefile("${var.host_os}-ssh-config.tpl", {
       hostname     = self.public_ip,
       user         = "ubuntu",
-      identityFile = "~/.ssh/mtckey"
+      identityFile = var.ssh_key_path
     })
-    interpreter = ["bash", "-c"] # For Linux
+    interpreter = var.host_os == "windows" ? ["Powershell", "-Command"] : ["bash", "-c"]
+    //interpreter = ["bash", "-c"] # For Linux
     #interpreter = ["Powershell", "-Command"] # For Windows
   }
 }
